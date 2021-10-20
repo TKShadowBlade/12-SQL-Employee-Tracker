@@ -75,7 +75,7 @@ function view() {
 
 function viewAllEmployees() {
     const query =
-        `SELECT e.id AS ID, e.first_name AS First, e.last_name AS Last, e.role_id AS role, r.salary AS Salary, m.last_name AS Manager, d.name AS Department
+        `SELECT e.id AS ID, e.first_name AS First, e.last_name AS Last, e.role_id AS title, r.salary AS Salary, m.last_name AS Manager, d.name AS Department
         FROM employee e 
             LEFT JOIN employee m
                 ON e.manager_id = m.id
@@ -109,7 +109,7 @@ function viewByDepartment() {
                     message: 'Which department?'
                 }
             ]).then((answer) => {
-                const query = `SELECT e.id AS ID, e.first_name AS First, e.last_name AS last, e.role_id AS Role, r.salary AS Salary, m.last_name AS Manager, d.name AS Department
+                const query = `SELECT e.id AS ID, e.first_name AS First, e.last_name AS last, e.role_id AS Title, r.salary AS Salary, m.last_name AS Manager, d.name AS Department
                 FROM employee e
                 LEFT JOIN department d
                     ON r.department_id = d.id
@@ -120,6 +120,44 @@ function viewByDepartment() {
                     console.table(res);
                     startUp();
                 })
+            });
+    });
+}
+
+function viewByRole() {
+    connection.query('SELECT title FROM role', (err, res) => {
+        if(err) throw err;
+
+        inquirer
+            .prompt([
+                {
+                    name: 'choice',
+                    type: 'rawlist',
+                    choices: function() {
+                        const choiceArray = [];
+                        for (i = 0; i < res.length; i++) {
+                            choiceArray.push (res[i].title);
+                        }
+                        return choiceArray;
+                    },
+                    message: 'Which role would you like to see?'
+                }
+            ]).then((answer) => {
+                const query = `SELECT e.id AS ID, e.first_name AS First, e.last_name AS Last, e.role_id AS Title, r.salary AS Salary, m.last_name AS Manager, d.name AS Department
+                FROM employee e
+                LEFT JOIN employee m
+                    ON e.manager_id = m.id
+                LEFT JOIN role r
+                    ON e.role_id = r.title
+                LEFT JOIN department d
+                    ON r.department_id = d.id WHERE e.role_id = ?`
+                
+                connection.query(query, [answer.choice], (err, res) => {
+                    if(err) throw err;
+                    console.table(res);
+                    startUp();
+                })
+
             });
     });
 }
