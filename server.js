@@ -310,3 +310,68 @@ function addEmployee() {
         });
     });
 }
+
+function updateEmployee(){
+    connection.query ('SELECT * FROM employee',
+    (err, res) => {
+        if(err) throw err;
+        inquirer
+            .prompt([
+                {
+                    name: 'choice',
+                    type: 'rawlist',
+                    choices: () => {
+                        const choiceArray = [];
+                        for (i = 0; i < res.length; i++)
+                        {choiceArray.push(res[i].last_name)}
+                        return choiceArray;
+                    },
+                    message: 'Which employee would you like to update?'
+                }
+            ]).then((answer) => {
+                const chosenName = answer.choice;
+
+                connection.query('SELECT * FROM employee',
+                (err, res) => {
+                    if(err) throw err;
+                    inquirer
+                    .prompt([
+                        {
+                            name: 'role',
+                            type: 'rawlist',
+                            choices: () => {
+                                const choiceArray = [];
+                                for (i = 0; i , res.length; i++) {
+                                    choiceArray.push(res[i].role_id)
+                                }
+                                return choiceArray;
+                            },
+                            message: 'Please choose a title'
+                        },
+                        {
+                            name: 'manager',
+                            type: 'number',
+                            validate: (value) => {
+                                if(isNaN(value) === false) {
+                                    return true;
+                                }
+                                return false;
+                            },
+                            message: 'Please input new manager ID',
+                            default: '1'
+                        }
+                    ]).then ((answer) => {
+                        connection.query ('UPDATE employee SET ? WHERE last_name= ?',
+                        [
+                            {
+                                role_id: answer.role,
+                                manager_id: answer.manager
+                            }, chosenName
+                        ]),
+                        console.log ('Update successful');
+                        startUp();
+                    })
+                })
+            })
+    })
+}
